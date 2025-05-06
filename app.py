@@ -3,6 +3,32 @@ import pandas as pd
 import random
 from typing import List, Dict
 
+# モバイルフレンドリーな設定
+st.set_page_config(
+    page_title="ドローン試験対策",
+    page_icon="✈️",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# カスタムCSS
+st.markdown("""
+<style>
+    .stRadio > label {
+        font-size: 16px;
+        padding: 10px 5px;
+    }
+    .stButton button {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+    }
+    .css-1d391kg {
+        padding: 1rem 0.5rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # 問題データ
 questions = [
     {
@@ -512,18 +538,27 @@ def display_question(question: Dict, index: int):
     st.write(question["question"])
     
     choice = st.radio(
-        "選択肢:",
+        "",  # ラベルを空にして余分なスペースを削減
         question["choices"],
         key=f"question_{index}"
     )
     
-    if st.button("回答を確認", key=f"check_{index}"):
-        selected_index = question["choices"].index(choice)
-        if selected_index == question["correct_answer"]:
-            st.success("正解です！")
-        else:
-            st.error(f"不正解です。正解は: {question['choices'][question['correct_answer']]}")
-        st.info(f"解説: {question['explanation']}")
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        if st.button("回答を確認", key=f"check_{index}"):
+            selected_index = question["choices"].index(choice)
+            if selected_index == question["correct_answer"]:
+                st.success("正解です！")
+            else:
+                st.error(f"不正解です。正解は: {question['choices'][question['correct_answer']]}")
+            st.info(f"解説: {question['explanation']}")
+    
+    with col2:
+        if st.button("次の問題へ", key=f"next_{index}"):
+            st.session_state[f"show_question_{index}"] = False
+            if index < len(questions) - 1:
+                st.session_state[f"show_question_{index + 1}"] = True
     
     st.divider()
 
@@ -531,18 +566,30 @@ def main():
     st.title("二等無人航空機操縦士 学科試験対策")
     st.write("この問題集は、無人航空機の飛行の安全に関する教則（第４版）に基づいて作成されています。")
     
+    # 進捗表示
+    progress = st.progress(0)
+    
     # シャッフルされた問題のインデックスを生成
-    shuffled_indices = list(range(len(questions)))
     if 'shuffled_indices' not in st.session_state:
+        shuffled_indices = list(range(len(questions)))
         random.shuffle(shuffled_indices)
         st.session_state.shuffled_indices = shuffled_indices
+        
+        # 初期表示状態を設定
+        for i in range(len(questions)):
+            st.session_state[f"show_question_{i}"] = (i == 0)
     
     # 問題を表示
-    for i in st.session_state.shuffled_indices:
-        display_question(questions[i], i)
+    current_question = 0
+    for i, idx in enumerate(st.session_state.shuffled_indices):
+        if st.session_state.get(f"show_question_{i}", False):
+            display_question(questions[idx], i)
+            current_question = i
+            progress.progress((i + 1) / len(questions))
     
+    # シャッフルボタン
     if st.button("問題をシャッフル"):
-        st.session_state.pop('shuffled_indices')
+        st.session_state.clear()
         st.experimental_rerun()
 
 if __name__ == "__main__":
