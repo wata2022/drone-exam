@@ -590,7 +590,7 @@ def main():
     # シャッフルボタン
     if st.button("問題をシャッフル"):
         st.session_state.clear()
-        st.experimental_rerun()
+        st.rerun()
 
 if __name__ == "__main__":
     main() 

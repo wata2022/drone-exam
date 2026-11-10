@@ -11,10 +11,8 @@ echo Upgrading pip and installing build tools...
 python -m pip install --upgrade pip wheel setuptools
 
 echo Installing packages one by one...
-pip install --no-cache-dir PyPDF2==3.0.1
-pip install --no-cache-dir pandas==2.2.3
-pip install --no-cache-dir python-docx==1.1.2
-pip install --no-cache-dir streamlit
+pip install --no-cache-dir pandas==3.1.1
+pip install --no-cache-dir streamlit==1.67.0
 
 if errorlevel 1 (
     echo.
